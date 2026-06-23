@@ -2,6 +2,8 @@
 
 A terminal-based chatbot built with Node.js that connects to Google Gemini, OpenAI, Anthropic, NVIDIA, and Ollama. It features a custom interactive shell prompt that intercepts keypresses to offer dynamic command suggestions, multi-agent capabilities, and auto-debugging.
 
+![A.N.A.N.D Terminal CLI Chatbot](./Screenshot%202026-06-23%20152843.png)
+
 ## Installation & Global Access
 
 ### Option 1: Install via npm (Recommended)
@@ -37,20 +39,32 @@ anand
 
 ### ⚡ Extreme Speed & Responsiveness
 *   **Sub-Millisecond Keypress Interception**: Built on raw Node.js `readline` keypress interception, command autocomplete suggestions render and filter instantly under your cursor without causing any typing lag.
-*   **Rapid Live Search**: The paginated model selector filters hundreds of API models instantaneously as you type characters into the `Search > ` input.
+*   **Rapid Live Search**: The paginated model selector filters hundreds of API models CPU-instantly as you type characters into the `Search > ` input.
 *   **Efficient IPC Communication**: Spawns and manages subagents using lightweight, asynchronous Node.js IPC channels for low-overhead message sharing.
 
-### 🤖 Multi-Agent Algorithm Mode (`/algo`)
-*   **Orchestration**: The user interacts directly with a **Commander Agent** (`Assistant (Commander) > `).
-*   **Coding Agents**: The Commander plans subtasks and spawns autonomous **Coding Agents** (colored in magenta) using `<spawn_agent model="model_name" debugger_model="model_name">`.
-*   **Debugger Agents**: Once a Coding Agent modifies or writes any files, a **Debugger Agent** (colored in yellow) is automatically spawned to verify the changes.
+### 🔍 Searchable Pickers & Defaults
+*   **Interactive Search**: Selection menus (such as `/models`, `/coding-models`, `/debugger`, and `/provider`) feature a real-time `Search >` filter input. Type letters to narrow down options dynamically.
+*   **Smart Defaults**: Pickers remember and automatically highlight the last used provider or model when opened, so you don't have to scroll from the top every time.
+
+### 🤖 Autonomous Multi-Agent Orchestration Mode (`/algo`)
+*   **Commander Agent**: You talk directly to the Commander (`Assistant (Commander) > `). It analyzes your task and breaks it down into subtasks.
+*   **Coding Agents**: The Commander spawns autonomous Coding Agents (colored in magenta) using `<spawn_agent model="model_name" debugger_model="model_name">` to execute the subtasks.
+*   **Debugger Agents**: Once a Coding Agent modifies or writes any files, a Debugger Agent (colored in yellow) is automatically spawned to verify the changes.
     - **Self-Healing**: If the Debugger finds small errors (like syntax typos), it fixes them itself using `<write_file>`.
     - **Report Back**: If the error is large, the Debugger returns a detailed error report to the Commander to adjust the plan.
 
 ### 💬 Single-Agent Normal Mode (`/normal`)
-*   Acts as a standard single chatbot (`A.N.A.N.D > `).
-*   Allows you to chat directly with one agent.
-*   **Capabilities**: The agent still has direct access to the workspace and can run commands, read files, and write files directly.
+*   **Traditional Chatbot**: Switches to a single-agent experience (`A.N.A.N.D > `) where you talk to one assistant directly.
+*   **Direct Capabilities**: The agent still has direct access to the local workspace and can run commands, read files, and write files directly using XML tags.
+
+### 🛡️ Built-in Security Supervisor (Harness)
+A.N.A.N.D is supervised by a Node.js capability harness (`harness.js`):
+*   **Prompted Approvals**: When the chatbot triggers a command execution, file read, or file write, the harness intercepts the request and prompts you to select `Allow Once`, `Always Allow`, or `Reject` using arrow keys.
+*   **Whitelisting**: Selecting "Always Allow" whitelists that specific command for the rest of the session.
+
+### 📦 Context Compaction & Memory
+*   **Context Compression**: Uses `/compact` to summarize history using LLMs, saving token costs and preventing context window expiration.
+*   **Multi-Line Editor**: Type `/editor` (or press `Ctrl+X e`) to compose formatted code blocks or longer text entries without triggering premature submission.
 
 ## Commands & Keyboard Shortcuts
 
@@ -74,12 +88,3 @@ Inside the chatbot, you can use these commands or press `Ctrl + X` followed by t
 | `/history` | `Ctrl + X y` | Show current session history or export it to Markdown |
 | `/clear` | `Ctrl + X o` | Clear context history and reset terminal |
 | `/exit` | `Ctrl + X q` | Terminate the session |
-
-## Searchable Pickers & Defaults
-*   **Interactive Search**: Selection menus (such as `/models`, `/coding-models`, `/debugger`, and `/provider`) now feature a real-time `Search > ` filter input. Type letters to narrow down options dynamically.
-*   **Smart Defaults**: Pickers remember and automatically highlight the last used provider or model when opened, so you don't have to scroll from the top every time.
-
-## Capability Harness
-A.N.A.N.D is supervised by a Node.js capability harness (`harness.js`):
-*   **Prompted Approvals**: When the chatbot triggers a command execution, file read, or file write, the harness intercepts the request and prompts you to select `Allow Once`, `Always Allow`, or `Reject` using arrow keys.
-*   **Whitelisting**: Selecting "Always Allow" whitelists that specific command for the rest of the session.
