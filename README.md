@@ -6,6 +6,19 @@ A terminal-based chatbot built with Node.js that connects to Google Gemini, Open
 
 ---
 
+## 🚀 Why A.N.A.N.D is a Gamechanger
+
+Traditional AI coding assistants operate as single-agent chatbots. The user prompts the bot, copies the code output, pastes it locally, compiles/runs it, encounters errors, copy-pastes the errors back to the chatbot, and repeats this manual loop. This is slow, error-prone, and requires constant user supervision.
+
+A.N.A.N.D changes this paradigm entirely by implementing an automated **Commander-Coding-Debugger loop**:
+
+1.  **Zero-Touch Coding**: You define a goal. The Commander Agent plans and spawns a **Coding Agent** to directly read and write files inside your local workspace.
+2.  **Autonomous Verification**: The moment files are written, a **Debugger Agent** spawns in the background. It reads the files, runs compilation checks, checks syntax, and executes test suites.
+3.  **Self-Healing**: If a compile/syntax error occurs, the Debugger Agent does not report it to you; it **automatically edits the file to fix the bug** itself. Only massive design failures or requirements contradictions are escalated back to the Commander.
+4.  **No Manual Copy-Pasting**: The entire cycle of writing, compiling, debugging, and fixing occurs autonomously. You only see the final, compiled, functional result.
+
+---
+
 ## 🏗️ System Architecture
 
 A.N.A.N.D operates as a secure, decoupled orchestration system where the chatbot and its spawned agents communicate with the local file system and shell command runner through an IPC Capability Harness.
@@ -30,7 +43,27 @@ graph TD
 
 ---
 
-## 🚀 Installation & Global Access
+## 🧠 Memory Leak & Context Bloat Prevention
+
+Modern LLM agents frequently suffer from memory leaks and performance degradation. A.N.A.N.D is designed from the ground up to prevent these issues:
+
+### 1. Process-Level Memory Isolation
+*   **Problem**: Continuous generation and subagent spawning in a single-process application leads to Heap accumulation, memory fragmentation, and eventual process crashes.
+*   **A.N.A.N.D Solution**: Coding and Debugger agents are spawned as isolated Node.js child processes via `child_process.fork()`. When their specific subtask is completed, the child process is terminated. Node.js instantly garbage-collects and releases 100% of the memory allocated for that agent's chat history, API handlers, and buffers.
+
+### 2. Context Bloat and Token Overflow Prevention
+*   **Problem**: In traditional architectures, all tool execution outputs, file reads, and logs are dumped directly into the main conversation history, causing token count to balloon, response latency to spike, and LLM reasoning to decay.
+*   **A.N.A.N.D Solution**: 
+    - **Short-Lived Sub-Sessions**: Coding and Debugger subagents use independent, isolated chat sessions. Only their finalized summary reports are fed back to the Commander.
+    - **Active Compaction**: The `/compact` command summarizes conversation history into a single concise paragraph of context, freeing up the model's active memory and maintaining high reasoning performance.
+
+### 3. Event Listener Leak Safeguards
+*   **Problem**: Frequent stdin keypress capturing and IPC messages can build up orphan listeners, causing `MaxListenersExceededWarning` and memory bloat.
+*   **A.N.A.N.D Solution**: The supervisor harness uses clean event-emitter registration. Every time an agent finishes a keypress query or capability request, the listeners are explicitly cleaned up using `.removeListener('keypress', ...)` and callback maps are fully cleared, guaranteeing a leak-free shell.
+
+---
+
+## 💻 Installation & Global Access
 
 ### Option 1: Install via npm (Recommended)
 To download and install the CLI tool globally from the npm registry:
@@ -67,26 +100,17 @@ anand
 
 ### 1. High Speed & Low-Latency UI
 *   **Sub-Millisecond Keypress Interception**: Using Node's native `readline` module in raw mode, keypresses are captured instantly. Command suggestion overlays filter and render underneath your cursor on the fly, introducing absolutely zero typing lag.
-*   **Rapid Live Search**: Paginated model pickers filter hundreds of available API models instantly as you type characters into the `Search >` prompt.
-*   **Fast Asynchronous IPC**: Spawned Coding and Debugger subagents run in isolated child processes and stream outputs back via Node.js IPC channels.
+*   **Rapid Live Search**: The paginated model selector filters hundreds of available API models CPU-instantly as you type characters into the `Search >` prompt.
 
-### 2. Autonomous Multi-Agent Orchestration (`/algo`)
-When placed in Algorithm Mode (default), the chatbot operates as a multi-agent hierarchy:
-*   **Commander Agent**: The user-facing agent. It plans the execution of complex coding tasks and coordinates the work of subagents.
-*   **Coding Agent**: Spawns using `<spawn_agent model="model_name" debugger_model="model_name">`. It writes files, reads resources, and runs CLI build commands.
-*   **Debugger Agent**: Automatically spawned whenever a Coding Agent writes or modifies files.
-    - **Self-Healing**: It reads the modified code, runs compilation/lint/run tests, and immediately resolves basic syntax or reference errors itself using `<write_file>`.
-    - **Escalation**: For logical design errors or requirements conflicts, the Debugger generates a structured diagnostic report and escalates it to the Commander.
-
-### 3. Traditional Single-Agent Mode (`/normal`)
+### 2. Traditional Single-Agent Mode (`/normal`)
 *   Provides a direct, single-chat assistant (`A.N.A.N.D > `) that does not spawn subagents.
 *   Retains the ability to invoke direct capabilities (like running shell commands, reading workspace files, or writing content) when requested using the XML tags.
 
-### 4. Searchable Pickers & Defaults
+### 3. Searchable Pickers & Defaults
 *   **Live Menus**: Selection menus (such as `/models`, `/coding-models`, `/debugger`, and `/provider`) render with a real-time `Search > ` filter input.
 *   **Smart Defaults**: Remembers your last-used provider, model, and debugger model configurations, highlighting them automatically when selection menus are opened.
 
-### 5. Decoupled Capability Harness (Security)
+### 4. Decoupled Capability Harness (Security)
 *   **Sandbox Isolation**: Chat sessions run in child processes. They cannot touch the file system or run commands directly.
 *   **Interactive Prompts**: All capability requests are intercepted by `harness.js` which prompts you to confirm permissions (`Allow Once`, `Always Allow`, `Reject`) using arrow keys.
 *   **Session Whitelist**: Choosing "Always Allow" whitelists that specific command, preventing future prompts during the active session.
