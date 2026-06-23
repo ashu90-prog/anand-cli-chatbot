@@ -1,0 +1,20 @@
+# Node dependencies
+node_modules/
+package-lock.json
+
+# Rust build output
+target/
+
+# Python virtual environment and caches
+venv/
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Secrets and local config files
+.env
+config.json
+.cli-chatbot/
+*.bak
+*.pre-debugger
