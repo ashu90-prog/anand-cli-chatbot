@@ -1,5 +1,5 @@
 {
-  "name": "anand",
+  "name": "anandcli",
   "version": "1.0.0",
   "type": "module",
   "description": "Multi-provider CLI chatbot with autocomplete command suggestions",
