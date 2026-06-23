@@ -1,6 +1,6 @@
 # A.N.A.N.D CLI Chatbot Project Specification (Interactive Autocomplete)
 
-A terminal-based chatbot built with Node.js (ES Modules) that integrates Google Gemini, OpenAI, Anthropic, and Ollama. It features a custom interactive shell prompt that intercepts keypresses to offer dynamic command suggestions when typing `/` and filters command suggestions (e.g., `/mo` -> `/models`) that are selectable via arrow keys and Enter. It also supports physical keyboard shortcuts (`ctrl+x` combos) for instant command execution.
+A terminal-based chatbot built with Node.js (ES Modules) that integrates Google Gemini, OpenAI, Anthropic, NVIDIA, Ollama, OpenRouter, Groq, Deepinfra, and over 100+ custom OpenAI-compatible providers. It features a custom interactive shell prompt that intercepts keypresses to offer dynamic command suggestions when typing `/` and filters command suggestions (e.g., `/mo` -> `/models`) that are selectable via arrow keys and Enter. It also supports physical keyboard shortcuts (`ctrl+x` combos) for instant command execution.
 
 ---
 
@@ -22,7 +22,7 @@ The Node.js chatbot is modularized into:
             v                                               v
 +-----------------------+                       +-----------------------+
 |      providers.js     |                       |       config.js       |
-|   (Gemini/OpenAI/etc  |                       |    (API Keys/Prefs)   |
+|  (100+ API Adapters)  |                       |    (API Keys/Prefs)   |
 |   Native Stream Fetch)|                       +-----------+-----------+
 +-----------------------+                                   |
                                                             v
