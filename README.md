@@ -4,7 +4,7 @@ A terminal-based chatbot built with Node.js that connects to Google Gemini, Open
 
 ## Installation & Global Access
 
-### Option 1: Install via npm (Once Published)
+### Option 1: Install via npm (Recommended)
 To download and install the CLI tool globally from the npm registry:
 ```bash
 npm install -g anandcli
@@ -22,7 +22,7 @@ If you want to clone the repository and run it locally:
 2.  **Install dependencies and register globally**
     ```bash
     npm install
-    npm link
+    npm link --force
     ```
 
 ---
@@ -33,18 +33,21 @@ Once installed using either option, simply type `anand` in any terminal window a
 anand
 ```
 
-## CLI Modes
+## Features & High Speed Performance
 
-A.N.A.N.D can run in two distinct modes:
+### ⚡ Extreme Speed & Responsiveness
+*   **Sub-Millisecond Keypress Interception**: Built on raw Node.js `readline` keypress interception, command autocomplete suggestions render and filter instantly under your cursor without causing any typing lag.
+*   **Rapid Live Search**: The paginated model selector filters hundreds of API models instantaneously as you type characters into the `Search > ` input.
+*   **Efficient IPC Communication**: Spawns and manages subagents using lightweight, asynchronous Node.js IPC channels for low-overhead message sharing.
 
-### 1. Multi-Agent Algorithm Mode (`/algo`)
+### 🤖 Multi-Agent Algorithm Mode (`/algo`)
 *   **Orchestration**: The user interacts directly with a **Commander Agent** (`Assistant (Commander) > `).
 *   **Coding Agents**: The Commander plans subtasks and spawns autonomous **Coding Agents** (colored in magenta) using `<spawn_agent model="model_name" debugger_model="model_name">`.
 *   **Debugger Agents**: Once a Coding Agent modifies or writes any files, a **Debugger Agent** (colored in yellow) is automatically spawned to verify the changes.
     - **Self-Healing**: If the Debugger finds small errors (like syntax typos), it fixes them itself using `<write_file>`.
     - **Report Back**: If the error is large, the Debugger returns a detailed error report to the Commander to adjust the plan.
 
-### 2. Single-Agent Normal Mode (`/normal`)
+### 💬 Single-Agent Normal Mode (`/normal`)
 *   Acts as a standard single chatbot (`A.N.A.N.D > `).
 *   Allows you to chat directly with one agent.
 *   **Capabilities**: The agent still has direct access to the workspace and can run commands, read files, and write files directly.
