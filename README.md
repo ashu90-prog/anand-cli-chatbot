@@ -4,7 +4,33 @@ A terminal-based chatbot built with Node.js that connects to Google Gemini, Open
 
 ![A.N.A.N.D Terminal CLI Chatbot](./Screenshot%202026-06-23%20152843.png)
 
-## Installation & Global Access
+---
+
+## 🏗️ System Architecture
+
+A.N.A.N.D operates as a secure, decoupled orchestration system where the chatbot and its spawned agents communicate with the local file system and shell command runner through an IPC Capability Harness.
+
+```mermaid
+graph TD
+    User([User]) <--> |Interactive Shell / Autocomplete| Commander[Commander Agent]
+    subgraph Multi-Agent Orchestration Mode
+        Commander -->|Spawns via XML tag| Coder[Coding Agent]
+        Coder -->|IPC Request| JS_Harness[JS Capability Harness]
+        JS_Harness -->|Prompts for approval| User
+        User -->|Grants Permission| JS_Harness
+        JS_Harness -->|Executes Shell / Write / Read| Workspace[(Local Workspace)]
+        Workspace -->|Returns Output| Coder
+        Coder -->|Write Notification| Debugger[Debugger Agent]
+        Debugger -->|Analyzes Changes| Workspace
+        Debugger -->|Compiles / Runs Checks| Workspace
+        Debugger -->|Auto-Fixes Small Bugs| Workspace
+        Debugger -->|Detailed Report| Commander
+    end
+```
+
+---
+
+## 🚀 Installation & Global Access
 
 ### Option 1: Install via npm (Recommended)
 To download and install the CLI tool globally from the npm registry:
@@ -35,38 +61,39 @@ Once installed using either option, simply type `anand` in any terminal window a
 anand
 ```
 
-## Features & High Speed Performance
+---
 
-### ⚡ Extreme Speed & Responsiveness
-*   **Sub-Millisecond Keypress Interception**: Built on raw Node.js `readline` keypress interception, command autocomplete suggestions render and filter instantly under your cursor without causing any typing lag.
-*   **Rapid Live Search**: The paginated model selector filters hundreds of API models CPU-instantly as you type characters into the `Search > ` input.
-*   **Efficient IPC Communication**: Spawns and manages subagents using lightweight, asynchronous Node.js IPC channels for low-overhead message sharing.
+## ⚡ Key Features & Performance
 
-### 🔍 Searchable Pickers & Defaults
-*   **Interactive Search**: Selection menus (such as `/models`, `/coding-models`, `/debugger`, and `/provider`) feature a real-time `Search >` filter input. Type letters to narrow down options dynamically.
-*   **Smart Defaults**: Pickers remember and automatically highlight the last used provider or model when opened, so you don't have to scroll from the top every time.
+### 1. High Speed & Low-Latency UI
+*   **Sub-Millisecond Keypress Interception**: Using Node's native `readline` module in raw mode, keypresses are captured instantly. Command suggestion overlays filter and render underneath your cursor on the fly, introducing absolutely zero typing lag.
+*   **Rapid Live Search**: Paginated model pickers filter hundreds of available API models instantly as you type characters into the `Search >` prompt.
+*   **Fast Asynchronous IPC**: Spawned Coding and Debugger subagents run in isolated child processes and stream outputs back via Node.js IPC channels.
 
-### 🤖 Autonomous Multi-Agent Orchestration Mode (`/algo`)
-*   **Commander Agent**: You talk directly to the Commander (`Assistant (Commander) > `). It analyzes your task and breaks it down into subtasks.
-*   **Coding Agents**: The Commander spawns autonomous Coding Agents (colored in magenta) using `<spawn_agent model="model_name" debugger_model="model_name">` to execute the subtasks.
-*   **Debugger Agents**: Once a Coding Agent modifies or writes any files, a Debugger Agent (colored in yellow) is automatically spawned to verify the changes.
-    - **Self-Healing**: If the Debugger finds small errors (like syntax typos), it fixes them itself using `<write_file>`.
-    - **Report Back**: If the error is large, the Debugger returns a detailed error report to the Commander to adjust the plan.
+### 2. Autonomous Multi-Agent Orchestration (`/algo`)
+When placed in Algorithm Mode (default), the chatbot operates as a multi-agent hierarchy:
+*   **Commander Agent**: The user-facing agent. It plans the execution of complex coding tasks and coordinates the work of subagents.
+*   **Coding Agent**: Spawns using `<spawn_agent model="model_name" debugger_model="model_name">`. It writes files, reads resources, and runs CLI build commands.
+*   **Debugger Agent**: Automatically spawned whenever a Coding Agent writes or modifies files.
+    - **Self-Healing**: It reads the modified code, runs compilation/lint/run tests, and immediately resolves basic syntax or reference errors itself using `<write_file>`.
+    - **Escalation**: For logical design errors or requirements conflicts, the Debugger generates a structured diagnostic report and escalates it to the Commander.
 
-### 💬 Single-Agent Normal Mode (`/normal`)
-*   **Traditional Chatbot**: Switches to a single-agent experience (`A.N.A.N.D > `) where you talk to one assistant directly.
-*   **Direct Capabilities**: The agent still has direct access to the local workspace and can run commands, read files, and write files directly using XML tags.
+### 3. Traditional Single-Agent Mode (`/normal`)
+*   Provides a direct, single-chat assistant (`A.N.A.N.D > `) that does not spawn subagents.
+*   Retains the ability to invoke direct capabilities (like running shell commands, reading workspace files, or writing content) when requested using the XML tags.
 
-### 🛡️ Built-in Security Supervisor (Harness)
-A.N.A.N.D is supervised by a Node.js capability harness (`harness.js`):
-*   **Prompted Approvals**: When the chatbot triggers a command execution, file read, or file write, the harness intercepts the request and prompts you to select `Allow Once`, `Always Allow`, or `Reject` using arrow keys.
-*   **Whitelisting**: Selecting "Always Allow" whitelists that specific command for the rest of the session.
+### 4. Searchable Pickers & Defaults
+*   **Live Menus**: Selection menus (such as `/models`, `/coding-models`, `/debugger`, and `/provider`) render with a real-time `Search > ` filter input.
+*   **Smart Defaults**: Remembers your last-used provider, model, and debugger model configurations, highlighting them automatically when selection menus are opened.
 
-### 📦 Context Compaction & Memory
-*   **Context Compression**: Uses `/compact` to summarize history using LLMs, saving token costs and preventing context window expiration.
-*   **Multi-Line Editor**: Type `/editor` (or press `Ctrl+X e`) to compose formatted code blocks or longer text entries without triggering premature submission.
+### 5. Decoupled Capability Harness (Security)
+*   **Sandbox Isolation**: Chat sessions run in child processes. They cannot touch the file system or run commands directly.
+*   **Interactive Prompts**: All capability requests are intercepted by `harness.js` which prompts you to confirm permissions (`Allow Once`, `Always Allow`, `Reject`) using arrow keys.
+*   **Session Whitelist**: Choosing "Always Allow" whitelists that specific command, preventing future prompts during the active session.
 
-## Commands & Keyboard Shortcuts
+---
+
+## 🛠️ Commands & Keyboard Shortcuts
 
 Inside the chatbot, you can use these commands or press `Ctrl + X` followed by the shortcut key:
 
@@ -88,3 +115,61 @@ Inside the chatbot, you can use these commands or press `Ctrl + X` followed by t
 | `/history` | `Ctrl + X y` | Show current session history or export it to Markdown |
 | `/clear` | `Ctrl + X o` | Clear context history and reset terminal |
 | `/exit` | `Ctrl + X q` | Terminate the session |
+
+---
+
+## 📂 Configuration Options (`config.json`)
+
+All configuration parameters are stored globally in `~/.cli-chatbot/config.json`. Below is the schema structure:
+
+```json
+{
+  "provider": "gemini",
+  "model": "gemini-2.5-flash",
+  "mode": "algo",
+  "debugger_model": "gemini-2.5-flash",
+  "system_prompt": "You are a helpful assistant.",
+  "api_keys": {
+    "gemini": "YOUR_GEMINI_KEY",
+    "openai": "YOUR_OPENAI_KEY",
+    "anthropic": "YOUR_ANTHROPIC_KEY",
+    "nvidia": "YOUR_NVIDIA_KEY"
+  },
+  "coding_models": [
+    "gemini-2.5-flash",
+    "gemini-2.5-pro"
+  ]
+}
+```
+
+---
+
+## 🔧 Developer Guide: Extending Providers
+
+To add a new API provider to the CLI, extend `BaseProvider` inside `providers.js` and register it in `ProviderManager`:
+
+1.  **Define the Provider Class**:
+    ```javascript
+    export class MyNewProvider extends BaseProvider {
+      constructor(apiKey) {
+        super();
+        this.apiKey = apiKey;
+      }
+      
+      async listModels() {
+        // Return array of model IDs available for your provider
+        return ['model-v1', 'model-v2'];
+      }
+      
+      async *generateStream(systemPrompt, messages, model) {
+        // Yield streamed chunks of assistant responses from the API
+        yield "Response chunk";
+      }
+    }
+    ```
+
+2.  **Register the Provider** inside the `ProviderManager` switch block:
+    ```javascript
+    case 'myprovider':
+      return new MyNewProvider(apiKey);
+    ```
