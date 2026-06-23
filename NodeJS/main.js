@@ -5,7 +5,7 @@ import path from 'path';
 import * as dotenv from 'dotenv';
 import * as config from './config.js';
 import { ChatSession } from './history.js';
-import { ProviderManager } from './providers.js';
+import { ProviderManager, PROVIDERS_CONFIG } from './providers.js';
 
 // Load .env file
 dotenv.config();
@@ -1706,20 +1706,22 @@ function handleSessionsCommand() {
 
 async function handleProviderCommand(args, cfg) {
   let providerName = '';
+  const customProviders = Object.keys(PROVIDERS_CONFIG);
+  const options = ['gemini', 'openai', 'anthropic', 'nvidia', 'ollama', ...customProviders];
   
   if (args.length === 0) {
-    const options = ['gemini', 'openai', 'anthropic', 'nvidia', 'ollama'];
     providerName = await askSelection(chalk.magenta.bold('Select LLM Provider:'), options, cfg.provider);
   } else {
     providerName = args[0].toLowerCase();
   }
 
-  if (!['gemini', 'openai', 'anthropic', 'nvidia', 'ollama'].includes(providerName)) {
+  if (!options.includes(providerName)) {
     console.log(chalk.red(`Error: Unknown provider '${providerName}'.`));
     return;
   }
 
-  if (providerName !== 'ollama') {
+  const localProviders = ['ollama', 'lmstudio', 'localai', 'vllm', 'koboldcpp', 'llamacpp', 'textgenwebui', 'gpt4all', 'continue', 'tabby'];
+  if (!localProviders.includes(providerName)) {
     let apiKey = config.getApiKey(providerName);
     if (!apiKey) {
       console.log(chalk.yellow(`API key not configured for ${providerName.toUpperCase()}.`));
@@ -1743,7 +1745,7 @@ async function handleProviderCommand(args, cfg) {
     nvidia: 'meta/llama-3.1-70b-instruct',
     ollama: 'llama3'
   };
-  const newModel = defaultModels[providerName];
+  const newModel = defaultModels[providerName] || (PROVIDERS_CONFIG[providerName] ? PROVIDERS_CONFIG[providerName].defaultModels[0] : 'default');
   config.updateConfig('model', newModel);
 
   console.log(chalk.green(`Switched active provider to: `) + chalk.green.bold(providerName.toUpperCase()) + chalk.green(` (Default Model: ${newModel})`));

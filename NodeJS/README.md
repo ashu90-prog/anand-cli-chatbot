@@ -1,6 +1,6 @@
 # A.N.A.N.D - Node.js CLI Chatbot (with Multi-Agent Orchestration & Autocomplete)
 
-A terminal-based chatbot built with Node.js that connects to Google Gemini, OpenAI, Anthropic, NVIDIA, and Ollama. It features a custom interactive shell prompt that intercepts keypresses to offer dynamic command suggestions, multi-agent capabilities, and auto-debugging.
+A terminal-based chatbot built with Node.js that connects to Google Gemini, OpenAI, Anthropic, NVIDIA, Ollama, OpenRouter, Groq, Deepinfra, and over 100+ custom LLM providers. It features a custom interactive shell prompt that intercepts keypresses to offer dynamic command suggestions, multi-agent capabilities, and auto-debugging.
 
 ## Installation & Global Access
 
@@ -39,6 +39,12 @@ A.N.A.N.D can run in two distinct modes:
 *   Allows you to chat directly with one agent.
 *   **Capabilities**: The agent still has direct access to the workspace and can run commands, read files, and write files directly.
 
+## Supported Providers (100+)
+A.N.A.N.D supports standard built-in providers, local servers, and custom OpenAI-compatible APIs:
+* **Built-in Providers**: `gemini`, `openai`, `anthropic`, `nvidia`, `ollama`
+* **Custom & Free API Providers**: `openrouter`, `groq`, `deepseek`, `together`, `mistral`, `xai`, `perplexity`, `cerebras`, `sambanova`, `deepinfra`, `fireworks`, `novita`, `lepton`, `hyperbolic`, `nebius`, `friendli`, `runpod`, `opencodezen`, `llamaapi`, `anyscale`, `monsterapi`, `openpipe`, `huggingface`, `lambdalabs`, `octoai`, `ai21`, `scale`, `gooseai`, `alibaba`, `zhipu`, `moonshot`, `minimax`, `yi`, `baichuan`, `doubao`, `stepfun`, `siliconflow`, `textsynth`, `api2d`, `linkai`, `oneapi`, `newapi`, `opencode`, `openchat`, `cloudl`, `deepgpt`, `llamacloud`, `aimlapi`, `glider`, `openlayer`, `databricks`, `workersai`, `portkey`, `openrouterfree`, `openrouterbeta`, `router`, `feather`, `sensenova`, `hunyuan`, `spark`, `baiduqianfan`, `copilot`, `cursor`, `ghostcoder`, `codegpt`, `codeium`, `supermaven`, `sourcegraphcody`, `blackbox`, `phind`, `you`, `duckduckgo`, `brave`, `kling`, `luma`, `runway`, `sora`, `midjourneycompatible`, `stablediffusioncompatible`, `elevenlabscompatible`, `voci`, `assemblyai`, `deepgram`, `whispercompatible`, `glhf`, `hyperbolicfree`, `openrouterfreetier`, `cohere`, `writer`, `groqfree`
+* **Local Provider Endpoints**: `lmstudio`, `localai`, `vllm`, `koboldcpp`, `llamacpp`, `textgenwebui`, `gpt4all`, `mlflow`, `langchainlocal`, `ollamaremote`, `runpodserverless`, `awsbedrockcompatible`, `azureopenaicompatible`, `tabby`, `continue`
+
 ## Commands & Keyboard Shortcuts
 
 Inside the chatbot, you can use these commands or press `Ctrl + X` followed by the shortcut key:
@@ -53,7 +59,7 @@ Inside the chatbot, you can use these commands or press `Ctrl + X` followed by t
 | `/algo` | *None* | Switch to Multi-Agent Algorithm mode |
 | `/normal` | *None* | Switch to Normal Chatbot mode |
 | `/terminal` | `Ctrl + X t` | Open interactive terminal shell |
-| `/provider` | `Ctrl + X p` | Switch active provider (Gemini, OpenAI, Anthropic, NVIDIA, Ollama) |
+| `/provider` | `Ctrl + X p` | Switch active provider (Gemini, OpenAI, Anthropic, NVIDIA, Ollama, OpenRouter, and 100+ custom providers) |
 | `/init` | `Ctrl + X i` | Initialize `AGENTS.md` rules in the workspace |
 | `/compact` | `Ctrl + X c` | Compact the context history |
 | `/sessions` | `Ctrl + X l` | List all saved chat sessions |
