@@ -1,12 +1,20 @@
 {
   "name": "anandcli",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "description": "Multi-provider CLI chatbot with autocomplete command suggestions",
   "main": "main.js",
   "bin": {
     "anand": "harness.js"
   },
+  "files": [
+    "harness.js",
+    "main.js",
+    "providers.js",
+    "config.js",
+    "history.js",
+    "README.md"
+  ],
   "dependencies": {
     "chalk": "^5.3.0",
     "dotenv": "^16.4.5"
