@@ -76,3 +76,10 @@ Inside the chatbot, you can use these commands or press `Ctrl + X` followed by t
 A.N.A.N.D is supervised by a Node.js capability harness (`harness.js`):
 *   **Prompted Approvals**: When the chatbot triggers a command execution, file read, or file write, the harness intercepts the request and prompts you to select `Allow Once`, `Always Allow`, or `Reject` using arrow keys.
 *   **Whitelisting**: Selecting "Always Allow" whitelists that specific command for the rest of the session.
+
+## Terminal Robustness & UI Reliability
+To provide a smooth, crash-free interface in advanced terminal emulators (like VS Code ConPTY, Windows Terminal, and traditional shells), the following features are integrated:
+*   **Focus-Reporting Filtration**: Focus-reporting command sequences (`\u001b[I` / `\u001b[O`) sent when switching windows or tabs are filtered out early to avoid polluting the prompt buffer.
+*   **Global Raw Mode Strategy**: The keyboard raw mode state is maintained globally across prompt cycles instead of rapid toggling. This prevents desynchronization and deadlocks of input events on Windows-based shell streams.
+*   **Synchronous State Recovery**: The terminal's alternate screen buffer, cursor states, and mouse reporting settings are synchronously restored (`fs.writeSync` to stdout) during process exit, standard interruption signals (`SIGINT`/`SIGTERM`), and unhandled exceptions or promise rejections.
+*   **Layout Consistency**: Suggestion list scroll boxes and response frames render cleanly alongside left-aligned prompts with dynamic column alignment. The prompt box outline remains fully intact and visible during response generation wait times.

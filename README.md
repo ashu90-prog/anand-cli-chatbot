@@ -115,6 +115,13 @@ anand
 *   **Interactive Prompts**: All capability requests are intercepted by `harness.js` which prompts you to confirm permissions (`Allow Once`, `Always Allow`, `Reject`) using arrow keys.
 *   **Session Whitelist**: Choosing "Always Allow" whitelists that specific command, preventing future prompts during the active session.
 
+### 5. Terminal Robustness & alternate Screen Reliability
+*   **Focus & Paste Protection**: Filters terminal focus reporting sequences (`\u001b[I` / `\u001b[O`) and key events with undefined metadata to prevent input buffer corruptions and terminal crashes.
+*   **Global Raw Mode Stability**: Keeps raw mode active globally (instead of rapidly toggling it between prompt states), resolving input deadlocks in ConPTY / VS Code Integrated Terminals.
+*   **Synchronous Recovery**: Utilizes synchronous standard output writing (`fs.writeSync`) on process exits, signals (`SIGINT`/`SIGTERM`), and unhandled exceptions to restore terminal alternate screen modes immediately and prevent terminal lockups.
+*   **Dynamic Visual Margins**: Keeps the prompt/query box left-aligned while assistant responses are padded dynamically by 4 spaces.
+*   **Persistent Input Interface**: The query box borders, outline, and status line remain fully visible and positioned during response stream generation.
+
 ---
 
 ## 🛠️ Commands & Keyboard Shortcuts

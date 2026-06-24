@@ -2,7 +2,7 @@ export class BaseProvider {
   listModels() {
     throw new Error('Not implemented');
   }
-  async *generateStream(systemPrompt, messages, model) {
+  async *generateStream(systemPrompt, messages, model, signal) {
     throw new Error('Not implemented');
   }
 }
@@ -34,7 +34,7 @@ export class GeminiProvider extends BaseProvider {
     return ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-1.5-flash', 'gemini-1.5-pro'];
   }
 
-  async *generateStream(systemPrompt, messages, model) {
+  async *generateStream(systemPrompt, messages, model, signal) {
     if (!this.apiKey) {
       throw new Error('Google Gemini API Key is not configured. Set GEMINI_API_KEY env var.');
     }
@@ -57,7 +57,8 @@ export class GeminiProvider extends BaseProvider {
     const response = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal
     });
 
     if (!response.ok) {
@@ -68,11 +69,14 @@ export class GeminiProvider extends BaseProvider {
     const decoder = new TextDecoder();
     const reader = response.body.getReader();
     let buffer = '';
+    let fullStreamText = '';
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      buffer += decoder.decode(value, { stream: true });
+      const chunkStr = decoder.decode(value, { stream: true });
+      fullStreamText += chunkStr;
+      buffer += chunkStr;
 
       while (true) {
         const textMarker = '"text": "';
@@ -106,6 +110,18 @@ export class GeminiProvider extends BaseProvider {
         buffer = buffer.substring(endPos + 1);
       }
     }
+
+    const usageMatch = fullStreamText.match(/"usageMetadata"\s*:\s*\{([\s\S]*?)\}/);
+    if (usageMatch) {
+      const promptMatch = usageMatch[1].match(/"promptTokenCount"\s*:\s*(\d+)/);
+      const candidatesMatch = usageMatch[1].match(/"candidatesTokenCount"\s*:\s*(\d+)/);
+      const totalMatch = usageMatch[1].match(/"totalTokenCount"\s*:\s*(\d+)/);
+      this.lastTokenUsage = {
+        promptTokens: promptMatch ? parseInt(promptMatch[1], 10) : 0,
+        completionTokens: candidatesMatch ? parseInt(candidatesMatch[1], 10) : 0,
+        totalTokens: totalMatch ? parseInt(totalMatch[1], 10) : 0
+      };
+    }
   }
 }
 
@@ -138,7 +154,7 @@ export class OpenAIProvider extends BaseProvider {
     return ['gpt-4o', 'gpt-4o-mini', 'o1-mini', 'gpt-4-turbo'];
   }
 
-  async *generateStream(systemPrompt, messages, model) {
+  async *generateStream(systemPrompt, messages, model, signal) {
     if (!this.apiKey) {
       throw new Error('OpenAI API Key is not configured. Set OPENAI_API_KEY env var.');
     }
@@ -152,7 +168,8 @@ export class OpenAIProvider extends BaseProvider {
     const payload = {
       model,
       messages: formattedMessages,
-      stream: true
+      stream: true,
+      stream_options: { include_usage: true }
     };
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -161,7 +178,8 @@ export class OpenAIProvider extends BaseProvider {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal
     });
 
     if (!response.ok) {
@@ -189,6 +207,13 @@ export class OpenAIProvider extends BaseProvider {
             const data = JSON.parse(dataContent);
             const content = data.choices?.[0]?.delta?.content || '';
             if (content) yield content;
+            if (data.usage) {
+              this.lastTokenUsage = {
+                promptTokens: data.usage.prompt_tokens || 0,
+                completionTokens: data.usage.completion_tokens || 0,
+                totalTokens: data.usage.total_tokens || 0
+              };
+            }
           } catch (e) {
             // Ignore parse errors on partial streams
           }
@@ -227,7 +252,7 @@ export class AnthropicProvider extends BaseProvider {
     return ['claude-3-5-sonnet-latest', 'claude-3-5-haiku-latest', 'claude-3-opus-latest'];
   }
 
-  async *generateStream(systemPrompt, messages, model) {
+  async *generateStream(systemPrompt, messages, model, signal) {
     if (!this.apiKey) {
       throw new Error('Anthropic API Key is not configured. Set ANTHROPIC_API_KEY env var.');
     }
@@ -249,7 +274,8 @@ export class AnthropicProvider extends BaseProvider {
         'anthropic-version': '2023-06-01',
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal
     });
 
     if (!response.ok) {
@@ -277,6 +303,16 @@ export class AnthropicProvider extends BaseProvider {
             if (data.type === 'content_block_delta') {
               const text = data.delta?.text || '';
               if (text) yield text;
+            }
+            if (data.type === 'message_start' && data.message?.usage) {
+              this.lastTokenUsage = this.lastTokenUsage || { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+              this.lastTokenUsage.promptTokens = data.message.usage.input_tokens || 0;
+              this.lastTokenUsage.totalTokens = this.lastTokenUsage.promptTokens + this.lastTokenUsage.completionTokens;
+            }
+            if (data.type === 'message_delta' && data.usage) {
+              this.lastTokenUsage = this.lastTokenUsage || { promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+              this.lastTokenUsage.completionTokens = data.usage.output_tokens || 0;
+              this.lastTokenUsage.totalTokens = this.lastTokenUsage.promptTokens + this.lastTokenUsage.completionTokens;
             }
           } catch (e) {
             // Ignore partial errors
@@ -306,7 +342,7 @@ export class OllamaProvider extends BaseProvider {
     }
   }
 
-  async *generateStream(systemPrompt, messages, model) {
+  async *generateStream(systemPrompt, messages, model, signal) {
     const formattedMessages = [];
     if (systemPrompt) {
       formattedMessages.push({ role: 'system', content: systemPrompt });
@@ -322,7 +358,8 @@ export class OllamaProvider extends BaseProvider {
     const response = await fetch(`${this.baseUrl}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal
     });
 
     if (!response.ok) {
@@ -348,6 +385,13 @@ export class OllamaProvider extends BaseProvider {
             const data = JSON.parse(line);
             const content = data.message?.content || '';
             if (content) yield content;
+            if (data.prompt_eval_count || data.eval_count) {
+              this.lastTokenUsage = {
+                promptTokens: data.prompt_eval_count || 0,
+                completionTokens: data.eval_count || 0,
+                totalTokens: (data.prompt_eval_count || 0) + (data.eval_count || 0)
+              };
+            }
           } catch (e) {
             // Ignore partial errors
           }
@@ -397,7 +441,7 @@ export class NvidiaProvider extends BaseProvider {
     ];
   }
 
-  async *generateStream(systemPrompt, messages, model) {
+  async *generateStream(systemPrompt, messages, model, signal) {
     if (!this.apiKey) {
       throw new Error('NVIDIA API Key is not configured. Set NVIDIA_API_KEY env var.');
     }
@@ -411,7 +455,8 @@ export class NvidiaProvider extends BaseProvider {
     const payload = {
       model,
       messages: formattedMessages,
-      stream: true
+      stream: true,
+      stream_options: { include_usage: true }
     };
 
     const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
@@ -420,7 +465,8 @@ export class NvidiaProvider extends BaseProvider {
         'Authorization': `Bearer ${this.apiKey}`,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal
     });
 
     if (!response.ok) {
@@ -448,6 +494,13 @@ export class NvidiaProvider extends BaseProvider {
             const data = JSON.parse(dataContent);
             const content = data.choices?.[0]?.delta?.content || '';
             if (content) yield content;
+            if (data.usage) {
+              this.lastTokenUsage = {
+                promptTokens: data.usage.prompt_tokens || 0,
+                completionTokens: data.usage.completion_tokens || 0,
+                totalTokens: data.usage.total_tokens || 0
+              };
+            }
           } catch (e) {
             // Ignore partial errors
           }
@@ -490,7 +543,7 @@ export class OpenAICompatibleProvider extends BaseProvider {
     return this.defaultModels;
   }
 
-  async *generateStream(systemPrompt, messages, model) {
+  async *generateStream(systemPrompt, messages, model, signal) {
     const isLocal = this.baseUrl.includes('localhost') || this.baseUrl.includes('127.0.0.1') || this.baseUrl.includes('::1');
     if (!this.apiKey && !isLocal) {
       throw new Error(`API Key is not configured for this provider. Configure it via /provider command.`);
@@ -505,7 +558,8 @@ export class OpenAICompatibleProvider extends BaseProvider {
     const payload = {
       model,
       messages: formattedMessages,
-      stream: true
+      stream: true,
+      stream_options: { include_usage: true }
     };
 
     const headers = {
@@ -518,7 +572,8 @@ export class OpenAICompatibleProvider extends BaseProvider {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: 'POST',
       headers,
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal
     });
 
     if (!response.ok) {
@@ -547,6 +602,13 @@ export class OpenAICompatibleProvider extends BaseProvider {
             const data = JSON.parse(dataContent);
             const content = data.choices?.[0]?.delta?.content || '';
             if (content) yield content;
+            if (data.usage) {
+              this.lastTokenUsage = {
+                promptTokens: data.usage.prompt_tokens || 0,
+                completionTokens: data.usage.completion_tokens || 0,
+                totalTokens: data.usage.total_tokens || 0
+              };
+            }
           } catch (e) {
             // Ignore partial errors
           }
