@@ -125,20 +125,26 @@ anand
 *   **Sub-Millisecond Keypress Interception**: Using Node's native `readline` module in raw mode, keypresses are captured instantly. Command suggestion overlays filter and render underneath your cursor on the fly, introducing absolutely zero typing lag.
 *   **Rapid Live Search**: The paginated model selector filters hundreds of available API models CPU-instantly as you type characters into the `Search >` prompt.
 
-### 2. Traditional Single-Agent Mode (`/normal`)
-*   Provides a direct, single-chat assistant (`A.N.A.N.D > `) that does not spawn subagents.
-*   Retains the ability to invoke direct capabilities (like running shell commands, reading workspace files, or writing content) when requested using the XML tags.
+### 2. Multi-Agent & Chatbot Modes (`/algo` & `/normal`)
+*   **Autonomous Orchestration Mode (`/algo`)**: Spawns a **Commander Agent** that coordinates with autonomous **Coding** and **Debugger** subagents to automatically write code, run compiler checks, and self-heal bugs locally.
+*   **Traditional Single-Agent Mode (`/normal`)**: Provides a direct, single-chat assistant (`A.N.A.N.D > `) that does not spawn subagents but can still execute local file system operations via permitted XML commands.
 
-### 3. Searchable Pickers & Defaults
+### 3. Autonomous Execution & Self-Healing (`/goal` & `/loop`)
+*   **Autonomous Goal Mode (`/goal <task>`)**: Available in Normal mode. Runs the target task autonomously. If compile or runtime errors occur, the agent detects them and automatically edits files to self-heal the issues without human intervention.
+*   **Autonomous Loop Mode (`/loop <task>`)**: Available in both Normal and Algo modes. 
+    *   *Normal Mode*: Rechecks and retries tasks automatically if errors are encountered.
+    *   *Algo Mode*: If the Debugger Agent detects an error, it passes the stack trace and diagnostic root cause back to the Commander. The Commander then turns the error into a temporary subtask (preserving the original task queue) and restores normal execution once the error-task is resolved.
+
+### 4. Searchable Pickers & Defaults
 *   **Live Menus**: Selection menus (such as `/models`, `/coding-models`, `/debugger`, and `/provider`) render with a real-time `Search > ` filter input.
 *   **Smart Defaults**: Remembers your last-used provider, model, and debugger model configurations, highlighting them automatically when selection menus are opened.
 
-### 4. Decoupled Capability Harness (Security)
+### 5. Decoupled Capability Harness (Security)
 *   **Sandbox Isolation**: Chat sessions run in child processes. They cannot touch the file system or run commands directly.
 *   **Interactive Prompts**: All capability requests are intercepted by `harness.js` which prompts you to confirm permissions (`Allow Once`, `Always Allow`, `Reject`) using arrow keys.
 *   **Session Whitelist**: Choosing "Always Allow" whitelists that specific command, preventing future prompts during the active session.
 
-### 5. Terminal Robustness & alternate Screen Reliability
+### 6. Terminal Robustness & Alternate Screen Reliability (UI Improvements)
 *   **Focus & Paste Protection**: Filters terminal focus reporting sequences (`\u001b[I` / `\u001b[O`) and key events with undefined metadata to prevent input buffer corruptions and terminal crashes.
 *   **Global Raw Mode Stability**: Keeps raw mode active globally (instead of rapidly toggling it between prompt states), resolving input deadlocks in ConPTY / VS Code Integrated Terminals.
 *   **Synchronous Recovery**: Utilizes synchronous standard output writing (`fs.writeSync`) on process exits, signals (`SIGINT`/`SIGTERM`), and unhandled exceptions to restore terminal alternate screen modes immediately and prevent terminal lockups.
@@ -160,6 +166,8 @@ Inside the chatbot, you can use these commands or press `Ctrl + X` followed by t
 | `/debugger` | `Ctrl + X d` | Select the model for the Debugger Agent (includes search bar) |
 | `/algo` | *None* | Switch to Multi-Agent Algorithm mode |
 | `/normal` | *None* | Switch to Normal Chatbot mode |
+| `/goal` | *None* | Run a task autonomously in Normal mode |
+| `/loop` | *None* | Run a task autonomously until done (both modes) |
 | `/terminal` | `Ctrl + X t` | Open interactive terminal shell |
 | `/provider` | `Ctrl + X p` | Switch active provider (Gemini, OpenAI, Anthropic, NVIDIA, Ollama) |
 | `/init` | `Ctrl + X i` | Initialize `AGENTS.md` rules in the workspace |

@@ -79,6 +79,8 @@ Inside the chatbot, you can use these commands or press `Ctrl + X` followed by t
 | `/debugger` | `Ctrl + X d` | Select the model for the Debugger Agent (includes search bar) |
 | `/algo` | *None* | Switch to Multi-Agent Algorithm mode |
 | `/normal` | *None* | Switch to Normal Chatbot mode |
+| `/goal` | *None* | Run a task autonomously in Normal mode |
+| `/loop` | *None* | Run a task autonomously until done (both modes) |
 | `/terminal` | `Ctrl + X t` | Open interactive terminal shell |
 | `/provider` | `Ctrl + X p` | Switch active provider (Gemini, OpenAI, Anthropic, NVIDIA, Ollama, OpenRouter, and 100+ custom providers) |
 | `/init` | `Ctrl + X i` | Initialize `AGENTS.md` rules in the workspace |
