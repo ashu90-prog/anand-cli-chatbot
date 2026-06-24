@@ -19,6 +19,29 @@ A.N.A.N.D changes this paradigm entirely by implementing an automated **Commande
 
 ---
 
+## 🎯 Autonomous Modes & Status Sidebar (Latest Updates)
+
+### 1. Autonomous Execution & Self-Healing
+*   **Goal Mode (`/goal <task description>`)**: Available only in Normal Mode. Runs the target task autonomously. If compile or runtime errors occur, the agent detects them and automatically edits files to self-heal the issues without human intervention.
+*   **Loop Mode (`/loop <task description>`)**: Available in both Normal and Algo modes. 
+    *   *Normal Mode*: Rechecks and retries tasks automatically if errors are encountered.
+    *   *Algo Mode*: If the Debugger Agent detects an error, it passes the stack trace and diagnostic root cause back to the Commander. The Commander then turns the error into a temporary subtask (preserving the original task queue) and restores normal execution once the error-task is resolved.
+
+### 2. Dual-Column Sidebar UI Panel
+The terminal screen is dynamically split into two regions:
+*   **Left Pane (Chat Output)**: Shows user prompts and assistant replies.
+*   **Right Pane (A.N.A.N.D Sidebar)**: A clean, border-free charcoal grey panel (`#1e1e24`) displaying:
+    *   *Active Configuration*: Current chatbot mode and API model.
+    *   *Live Token Usage*: Prompt, Completion, and Total tokens parsed in the last message.
+    *   *Context Window Monitor*: Percentage, fraction, and a visual progress bar indicating how much of the context window has been consumed.
+    *   *Dynamic TODO Checklist*: Tracks task completion state in real time: `[ ]` Todo, `[⋯]` In-progress, `[✓]` Done.
+
+### 3. User Interrupts & Thinking Animations
+*   **Stream Cancellation**: Pressing the `Esc` key or sending standard interrupt commands during active API streaming immediately halts the response stream via an `AbortController`.
+*   **Thinking Prompts**: Displays randomized thinking cues (e.g., `"analyzing..."`, `"trying my best to think like a human..."`) while waiting for the stream to start.
+
+---
+
 ## 🏗️ System Architecture
 
 A.N.A.N.D operates as a secure, decoupled orchestration system where the chatbot and its spawned agents communicate with the local file system and shell command runner through an IPC Capability Harness.
