@@ -2,7 +2,7 @@
 
 A terminal-based chatbot built with Node.js that connects to Google Gemini, OpenAI, Anthropic, NVIDIA, and Ollama. It features a custom interactive shell prompt that intercepts keypresses to offer dynamic command suggestions, multi-agent capabilities, and auto-debugging.
 
-![A.N.A.N.D Terminal CLI Chatbot](./Screenshot%202026-06-23%20152843.png)
+![A.N.A.N.D Terminal CLI Chatbot](./NodeJS/Screenshot%202026-06-24%20161949.png)
 
 ---
 
