@@ -1,6 +1,6 @@
 {
   "name": "anandcli",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "type": "module",
   "description": "Multi-provider CLI chatbot with autocomplete command suggestions",
   "main": "main.js",
@@ -13,6 +13,7 @@
     "providers.js",
     "config.js",
     "history.js",
+    "webfetch.js",
     "README.md"
   ],
   "dependencies": {
