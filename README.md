@@ -41,13 +41,32 @@ The terminal screen is dynamically split into two regions:
 *   **Thinking Prompts**: Displays randomized thinking cues (e.g., `"analyzing..."`, `"trying my best to think like a human..."`) while waiting for the stream to start.
 
 ### 4. Recent Bug Fixes & UI Polish (Latest)
-*   **WebFetch & Capability Retention**: Fixed an instruction decay issue where Kimi/Moonshot models (`moonshotai/kimi-k2.6` on NVIDIA NIM) would forget capabilities (like `<search_web>` and `<browse_url>`) in longer conversations. Prepending system prompt instructions to the *last* user query instead of the first user query keeps XML capability tags fully active without template compilation errors.
-*   **Zero-Tearing Side Panel**: Restrained all terminal row-clearing sequences (`clearLine` and space padding) to only clear columns within the chat pane width. This prevents typing, suggestion boxes, model pickers, and thinking animations from corrupting or erasing the right-side charcoal panel content.
-*   **Dynamic Model and Context Updates**: Wired model names of spawned subagents directly to the side panel display. Added a reset state on Debugger Agent completion, and added token limit support (`262,144` context window) for StepFun models.
-*   **Gemini/Anthropic Role Merging**: Added auto-merging of consecutive turns of the same role for Google Gemini and Anthropic API requests, avoiding format validation failures.
-*   **Native Web Search & Browsing**: Integrated `/search-web` and `/browse-url` commands leveraging the IPC harness and `webfetch.js` to search DuckDuckGo and extract page texts.
-*   **Decoupled Harness Auto-Restart**: Enabled child-process auto-restart capability (restarts on exit code 42) in `harness.js` so running the `/restart` command reloads the session instantly.
-*   **Pulsing Generating Indicators & Animations**: Added a pulsing `[ESC to interrupt]` notification on the status row under the input prompt when a response is generating, alongside smooth thinking queue animations.
+
+We rolled out a series of major stability, visual, and architectural improvements to ensure robust shell performance:
+
+#### A. NVIDIA NIM Capability Retention (Kimi/Moonshot Integration)
+*   **The Issue**: When running long multi-turn chats, instruction decay caused moonshot models (`moonshotai/kimi-k2.6` on NVIDIA NIM) to "forget" system capability prompts. This prevented them from generating `<search_web>` and `<browse_url>` tags, leading to silent failures or template compile errors.
+*   **The Fix**: Modified `NvidiaProvider` inside `providers.js` to dynamically prefix the active system capabilities template to the **last user query** in the history stack rather than appending it to the initial first-turn message. This guarantees prompt instructions remain in the model's immediate context window.
+
+#### B. Column-Restricted Terminal Rendering Engine (Zero-Tearing UI)
+*   **The Issue**: Traditional line-clear codes (`readline.clearLine` or ANSI `\x1B[K`) erase the entire terminal row. In a split-screen terminal layout, updating the left pane (chat box, suggestion drop-downs, thinking animation) accidentally wiped out the right sidebar.
+*   **The Fix**: Restructured the rendering handlers in `main.js`. All row deletions are now restricted by width boundaries (`W_chat`). Overwriting is done strictly through space padding up to `W_chat` rather than clear-to-end sequences. This guarantees a tear-free, permanent charcoal-gray status panel.
+
+#### C. Decoupled Web-Searching Capability & IPC Architecture
+*   **Implementation**: Added `webfetch.js` to manage background fetch actions. It implements:
+    *   **DuckDuckGo HTML Scraping**: A fast scraping crawler using raw fetch requests, regex extraction, HTML entity decoding, and custom timeout protection.
+    *   **Markdown Extractor**: Converts web pages to compact, clean markdown while stripping out script blocks, stylesheets, nav menus, and footers.
+    *   **IPC Routing**: Registered `search_web` and `browse_url` inside `harness.js`. When a model triggers a search tag, `main.js` sends an IPC query request to the harness, which downloads the search results and returns them to the model sandbox.
+
+#### D. Google Gemini & Anthropic Message Normalization (Role Merging)
+*   **The Issue**: Frequent tool execution or multi-agent calls can create consecutive messages belonging to the same role (e.g. user, user) or system messages placed between user turns. Modern APIs like Gemini and Anthropic reject these histories with serialization errors.
+*   **The Fix**: Integrated a message-normalizer inside `providers.js`. It groups consecutive turns of the same role together and converts isolated system messages into user turns prefixed with `[System Message]`, conforming to API constraints.
+
+#### E. Decoupled Supervisor Lifecycle (Auto-Restart)
+*   **Implementation**: Programmed `harness.js` to monitor the chatbot child process exit status. If the child process exits with code `42` (triggered by calling the `/restart` command), the harness supervisor catches it and immediately forks a clean chat instance, preserving terminal alternate buffer states.
+
+#### F. Dynamic Prompt-Generation Visual Cues
+*   **Implementation**: Added a pulsing visual animation for prompt status line rows. When generating a stream response, the status panel warns `[ESC to interrupt]` with dual-color pulsing effects (toggled between yellow and gray every 500ms) to indicate the active stream cancel hotkey is ready.
 
 ---
 
