@@ -1,6 +1,6 @@
 # A.N.A.N.D - Node.js CLI Chatbot (with Multi-Agent Orchestration & Autocomplete)
 
-A terminal-based chatbot built with Node.js that connects to Google Gemini, OpenAI, Anthropic, NVIDIA, Ollama, OpenRouter, Groq, Deepinfra, and over 100+ custom LLM providers. It features a custom interactive shell prompt that intercepts keypresses to offer dynamic command suggestions, multi-agent capabilities, and auto-debugging.
+A terminal-based chatbot built with Node.js that connects to Google Gemini, OpenAI, Anthropic, Ollama, OpenRouter, Groq, Deepinfra, and over 100+ custom LLM providers. It features a custom interactive shell prompt that intercepts keypresses to offer dynamic command suggestions, multi-agent capabilities, and auto-debugging.
 
 ## Installation & Global Access
 
@@ -48,9 +48,9 @@ The terminal screen is dynamically split into two regions:
 
 We rolled out a series of major stability, visual, and architectural improvements to ensure robust shell performance:
 
-#### A. NVIDIA NIM Capability Retention (Kimi/Moonshot Integration)
-*   **The Issue**: When running long multi-turn chats, instruction decay caused moonshot models (`moonshotai/kimi-k2.6` on NVIDIA NIM) to "forget" system capability prompts. This prevented them from generating `<search_web>` and `<browse_url>` tags, leading to silent failures or template compile errors.
-*   **The Fix**: Modified `NvidiaProvider` inside `providers.js` to dynamically prefix the active system capabilities template to the **last user query** in the history stack rather than appending it to the initial first-turn message. This guarantees prompt instructions remain in the model's immediate context window.
+#### A. Remote Provider Capability Retention (System Prompt Preservation)
+*   **The Issue**: When running long multi-turn chats, instruction decay caused certain external models to "forget" system capability prompts. This prevented them from generating `<search_web>` and `<browse_url>` tags, leading to silent failures or template compile errors.
+*   **The Fix**: Modified the API prompt formatting mechanism inside the providers code to dynamically prefix the active system capabilities template to the **last user query** in the history stack rather than appending it to the initial first-turn message. This guarantees prompt instructions remain in the model's immediate context window.
 
 #### B. Column-Restricted Terminal Rendering Engine (Zero-Tearing UI)
 *   **The Issue**: Traditional line-clear codes (`readline.clearLine` or ANSI `\x1B[K`) erase the entire terminal row. In a split-screen terminal layout, updating the left pane (chat box, suggestion drop-downs, thinking animation) accidentally wiped out the right sidebar.
@@ -90,7 +90,7 @@ A.N.A.N.D can run in two distinct modes:
 
 ## Supported Providers (100+)
 A.N.A.N.D supports standard built-in providers, local servers, and custom OpenAI-compatible APIs:
-* **Built-in Providers**: `gemini`, `openai`, `anthropic`, `nvidia`, `ollama`
+* **Built-in Providers**: `gemini`, `openai`, `anthropic`, `ollama`
 * **Custom & Free API Providers**: `openrouter`, `groq`, `deepseek`, `together`, `mistral`, `xai`, `perplexity`, `cerebras`, `sambanova`, `deepinfra`, `fireworks`, `novita`, `lepton`, `hyperbolic`, `nebius`, `friendli`, `runpod`, `opencodezen`, `llamaapi`, `anyscale`, `monsterapi`, `openpipe`, `huggingface`, `lambdalabs`, `octoai`, `ai21`, `scale`, `gooseai`, `alibaba`, `zhipu`, `moonshot`, `minimax`, `yi`, `baichuan`, `doubao`, `stepfun`, `siliconflow`, `textsynth`, `api2d`, `linkai`, `oneapi`, `newapi`, `opencode`, `openchat`, `cloudl`, `deepgpt`, `llamacloud`, `aimlapi`, `glider`, `openlayer`, `databricks`, `workersai`, `portkey`, `openrouterfree`, `openrouterbeta`, `router`, `feather`, `sensenova`, `hunyuan`, `spark`, `baiduqianfan`, `copilot`, `cursor`, `ghostcoder`, `codegpt`, `codeium`, `supermaven`, `sourcegraphcody`, `blackbox`, `phind`, `you`, `duckduckgo`, `brave`, `kling`, `luma`, `runway`, `sora`, `midjourneycompatible`, `stablediffusioncompatible`, `elevenlabscompatible`, `voci`, `assemblyai`, `deepgram`, `whispercompatible`, `glhf`, `hyperbolicfree`, `openrouterfreetier`, `cohere`, `writer`, `groqfree`
 * **Local Provider Endpoints**: `lmstudio`, `localai`, `vllm`, `koboldcpp`, `llamacpp`, `textgenwebui`, `gpt4all`, `mlflow`, `langchainlocal`, `ollamaremote`, `runpodserverless`, `awsbedrockcompatible`, `azureopenaicompatible`, `tabby`, `continue`
 
@@ -110,7 +110,7 @@ Inside the chatbot, you can use these commands or press `Ctrl + X` followed by t
 | `/goal` | *None* | Run a task autonomously in Normal mode |
 | `/loop` | *None* | Run a task autonomously until done (both modes) |
 | `/terminal` | `Ctrl + X t` | Open interactive terminal shell |
-| `/provider` | `Ctrl + X p` | Switch active provider (Gemini, OpenAI, Anthropic, NVIDIA, Ollama, OpenRouter, and 100+ custom providers) |
+| `/provider` | `Ctrl + X p` | Switch active provider (Gemini, OpenAI, Anthropic, Ollama, OpenRouter, and 100+ custom providers) |
 | `/init` | `Ctrl + X i` | Initialize `AGENTS.md` rules in the workspace |
 | `/compact` | `Ctrl + X c` | Compact the context history |
 | `/sessions` | `Ctrl + X l` | List all saved chat sessions |
