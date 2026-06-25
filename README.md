@@ -40,6 +40,15 @@ The terminal screen is dynamically split into two regions:
 *   **Stream Cancellation**: Pressing the `Esc` key or sending standard interrupt commands during active API streaming immediately halts the response stream via an `AbortController`.
 *   **Thinking Prompts**: Displays randomized thinking cues (e.g., `"analyzing..."`, `"trying my best to think like a human..."`) while waiting for the stream to start.
 
+### 4. Recent Bug Fixes & UI Polish (Latest)
+*   **WebFetch & Capability Retention**: Fixed an instruction decay issue where Kimi/Moonshot models (`moonshotai/kimi-k2.6` on NVIDIA NIM) would forget capabilities (like `<search_web>` and `<browse_url>`) in longer conversations. Prepending system prompt instructions to the *last* user query instead of the first user query keeps XML capability tags fully active without template compilation errors.
+*   **Zero-Tearing Side Panel**: Restrained all terminal row-clearing sequences (`clearLine` and space padding) to only clear columns within the chat pane width. This prevents typing, suggestion boxes, model pickers, and thinking animations from corrupting or erasing the right-side charcoal panel content.
+*   **Dynamic Model and Context Updates**: Wired model names of spawned subagents directly to the side panel display. Added a reset state on Debugger Agent completion, and added token limit support (`262,144` context window) for StepFun models.
+*   **Gemini/Anthropic Role Merging**: Added auto-merging of consecutive turns of the same role for Google Gemini and Anthropic API requests, avoiding format validation failures.
+*   **Native Web Search & Browsing**: Integrated `/search-web` and `/browse-url` commands leveraging the IPC harness and `webfetch.js` to search DuckDuckGo and extract page texts.
+*   **Decoupled Harness Auto-Restart**: Enabled child-process auto-restart capability (restarts on exit code 42) in `harness.js` so running the `/restart` command reloads the session instantly.
+*   **Pulsing Generating Indicators & Animations**: Added a pulsing `[ESC to interrupt]` notification on the status row under the input prompt when a response is generating, alongside smooth thinking queue animations.
+
 ---
 
 ## 🏗️ System Architecture

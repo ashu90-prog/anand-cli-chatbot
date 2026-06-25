@@ -59,6 +59,8 @@ The CLI REPL loop captures `ctrl+x` key sequences. Pressing `ctrl+x` followed by
 | `/help` | `ctrl+x h` | Displays commands and shortcut directory |
 | `/editor` | `ctrl+x e` | Launches multi-line notepad entry mode |
 | `/models` | `ctrl+x m` | Fetches active provider models and displays selection |
+| `/coding-models` | `ctrl+x g` | Selects models pool for Coding Agents |
+| `/debugger` | `ctrl+x d` | Pick model for Debugger Agent |
 | `/init` | `ctrl+x i` | Initializes rules file `AGENTS.md` in workspace |
 | `/compact` | `ctrl+x c` | Triggers context summarization to clear token history |
 | `/sessions` | `ctrl+x l` | Reads and lists exported markdown log files |
@@ -66,12 +68,26 @@ The CLI REPL loop captures `ctrl+x` key sequences. Pressing `ctrl+x` followed by
 | `/system` | `ctrl+x s` | Configures system prompting instructions |
 | `/history` | `ctrl+x y` | Renders chat log / exports active log |
 | `/clear` | `ctrl+x o` | Resets terminal UI and clears conversation memory |
+| `/terminal` | `ctrl+x t` | Opens interactive shell mode |
 | `/exit` | `ctrl+x q` | Terminates the terminal process cleanly |
+
+### Workspace & Productivity Commands
+In addition to standard shortcuts, the REPL features categorized slash commands:
+1. **File & Project**: `/new` (create), `/open` (read/view), `/save` (edit), `/rename` (rename), `/delete` (remove), `/close` (deselect file).
+2. **Navigation**: `/goto` (jump to file/symbol), `/search` (grep query), `/explorer` (workspace directory tree explorer).
+3. **Code Assistance**: `/run` (execute active file/command), `/build` (npm/cargo/make builder), `/format` (prettier/black code format), `/fix` (Coding Agent fix request), `/debug` (Debugger Agent test verify).
+4. **AI/Agent Orchestrator**: `/ask` (chat focus file), `/explain` (code comprehension), `/generate` (agent code generation), `/test` (agent test writer), `/doc` (agent documenter).
+5. **Git Version Control**: `/status` (git status), `/branch` (git checkout/branch), `/commit` (git commit), `/push` (git push), `/pull` (git pull), `/clone` (git clone), `/stash` (git stash).
+6. **Environment & UI Customization**: `/settings` (view preferences), `/theme` (dynamic color schemes: Classic, Fire, Forest, Sunset, Hacker), `/extensions` (active modules list), `/restart` (restarts harness session).
+7. **Utilities**: `/snippet` (templates inserter), `/cmd` (custom CLI execute), `/log` (recent debugger output).
+8. **Web Search & Browsing**: `/search-web` (query DuckDuckGo search), `/browse-url` (fetch page and render stripped text).
+
 
 ---
 
 ## 4. UI Layout Specifications
 
-*   **Header Logo**: Block text logo centering "OPENCODE" and version suffix `v0.1.156`.
-*   **Prompt Box**: A 3-line ASCII border box (`┌──┐`, `│ │`, `└──┘`) spanning terminal width containing prompt `> ` and active user inputs with a highlighted background container.
-*   **Bottom Status Bar**: Left-aligned indicator `enter send` (or hotkey indicator) and right-aligned indicator `PROVIDER / Active Model` dynamically reflecting configurations.
+*   **Header Logo**: Block text logo centering "A.N.A.N.D" (or OpenCode) and version suffix `v0.1.156`.
+*   **Prompt Box**: A 3-line ASCII border box (`┌──┐`, `│ │`, `└──┘`) spanning terminal width containing prompt `You > ` and active user inputs with a highlighted background container.
+*   **Bottom Status Bar**: Left-aligned indicator `enter send` and right-aligned indicator `PROVIDER / Active Model` dynamically reflecting configurations.
+*   **Side Panel**: Dual-pane status tracker dynamically matching the layout theme styling (e.g. classic blue, hacking green, etc.) showing Token Usage, Context Window tracker, and Todo list.

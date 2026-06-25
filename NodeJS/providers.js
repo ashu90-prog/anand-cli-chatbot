@@ -42,8 +42,30 @@ export class GeminiProvider extends BaseProvider {
     const modelName = model.replace('models/', '');
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:streamGenerateContent?key=${this.apiKey}`;
     
-    const contents = messages.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
+    const mapped = messages.map(msg => {
+      let role = 'model';
+      let content = msg.content;
+      if (msg.role === 'user') {
+        role = 'user';
+      } else if (msg.role === 'system') {
+        role = 'user';
+        content = `[System Message]:\n${msg.content}`;
+      }
+      return { role, content };
+    });
+
+    // Merge consecutive turns of the same role to conform to Gemini API constraints
+    const merged = [];
+    for (const m of mapped) {
+      if (merged.length > 0 && merged[merged.length - 1].role === m.role) {
+        merged[merged.length - 1].content += '\n\n' + m.content;
+      } else {
+        merged.push({ ...m });
+      }
+    }
+
+    const contents = merged.map(msg => ({
+      role: msg.role,
       parts: [{ text: msg.content }]
     }));
 
@@ -86,8 +108,16 @@ export class GeminiProvider extends BaseProvider {
         const startPos = idx + textMarker.length;
         let endPos = startPos;
         while (endPos < buffer.length) {
-          if (buffer[endPos] === '"' && buffer[endPos - 1] !== '\\') {
-            break;
+          if (buffer[endPos] === '"') {
+            let bsCount = 0;
+            let p = endPos - 1;
+            while (p >= startPos && buffer[p] === '\\') {
+              bsCount++;
+              p--;
+            }
+            if (bsCount % 2 === 0) {
+              break;
+            }
           }
           endPos++;
         }
@@ -257,9 +287,31 @@ export class AnthropicProvider extends BaseProvider {
       throw new Error('Anthropic API Key is not configured. Set ANTHROPIC_API_KEY env var.');
     }
 
+    const mapped = messages.map(msg => {
+      let role = 'assistant';
+      let content = msg.content;
+      if (msg.role === 'user') {
+        role = 'user';
+      } else if (msg.role === 'system') {
+        role = 'user';
+        content = `[System Message]:\n${msg.content}`;
+      }
+      return { role, content };
+    });
+
+    // Merge consecutive turns of the same role to conform to Anthropic API constraints
+    const merged = [];
+    for (const m of mapped) {
+      if (merged.length > 0 && merged[merged.length - 1].role === m.role) {
+        merged[merged.length - 1].content += '\n\n' + m.content;
+      } else {
+        merged.push({ ...m });
+      }
+    }
+
     const payload = {
       model,
-      messages,
+      messages: merged,
       stream: true,
       max_tokens: 4096
     };
@@ -447,10 +499,39 @@ export class NvidiaProvider extends BaseProvider {
     }
 
     const formattedMessages = [];
+    const isKimi = model.toLowerCase().includes('kimi') || model.toLowerCase().includes('moonshot');
+
     if (systemPrompt) {
-      formattedMessages.push({ role: 'system', content: systemPrompt });
+      if (isKimi) {
+        let lastUserIdx = -1;
+        for (let i = messages.length - 1; i >= 0; i--) {
+          if (messages[i].role === 'user') {
+            lastUserIdx = i;
+            break;
+          }
+        }
+        const newMessages = [];
+        for (let i = 0; i < messages.length; i++) {
+          if (i === lastUserIdx) {
+            newMessages.push({
+              role: 'user',
+              content: `[System Instructions]\n${systemPrompt}\n\n[User Query]\n${messages[i].content}`
+            });
+          } else {
+            newMessages.push({ ...messages[i] });
+          }
+        }
+        if (lastUserIdx === -1) {
+          newMessages.unshift({ role: 'user', content: `[System Instructions]\n${systemPrompt}` });
+        }
+        formattedMessages.push(...newMessages);
+      } else {
+        formattedMessages.push({ role: 'system', content: systemPrompt });
+        formattedMessages.push(...messages);
+      }
+    } else {
+      formattedMessages.push(...messages);
     }
-    formattedMessages.push(...messages);
 
     const payload = {
       model,
