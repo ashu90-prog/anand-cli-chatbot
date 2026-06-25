@@ -1,3 +1,5 @@
+export const modelContextLimits = {};
+
 export class BaseProvider {
   listModels() {
     throw new Error('Not implemented');
@@ -613,6 +615,14 @@ export class OpenAICompatibleProvider extends BaseProvider {
       if (response.ok) {
         const data = await response.json();
         if (data.data) {
+          for (const m of data.data) {
+            if (m.id) {
+              const limit = m.context_length || m.context_window || m.max_position_embeddings;
+              if (limit) {
+                modelContextLimits[m.id.toLowerCase()] = limit;
+              }
+            }
+          }
           return data.data
             .map(m => m.id)
             .sort();

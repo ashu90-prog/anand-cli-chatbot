@@ -5,7 +5,7 @@ import path from 'path';
 import * as dotenv from 'dotenv';
 import * as config from './config.js';
 import { ChatSession } from './history.js';
-import { ProviderManager, PROVIDERS_CONFIG } from './providers.js';
+import { ProviderManager, PROVIDERS_CONFIG, modelContextLimits } from './providers.js';
 
 // Load .env file
 dotenv.config();
@@ -338,6 +338,12 @@ const CONTEXT_LIMITS = {
 function getModelContextLimit(modelName) {
   if (!modelName) return 128000;
   const nameLower = modelName.toLowerCase();
+  
+  // Check dynamically cached model context limits from API listModels responses first!
+  const cachedLimit = modelContextLimits[nameLower] || modelContextLimits[modelName];
+  if (cachedLimit) {
+    return cachedLimit;
+  }
   
   // 1. Explicit token size suffix detection (e.g. "8k", "32k", "128k", "256k", "1m")
   // Check for "k" suffixes
@@ -4835,6 +4841,19 @@ async function handleProviderCommand(args, cfg) {
   config.updateConfig('model', newModel);
 
   setTemporaryMessage(chalk.green(`Switched active provider to: `) + chalk.green.bold(providerName.toUpperCase()) + chalk.green(` (Default Model: ${newModel})`));
+
+  // Trigger background models fetch on provider change
+  (async () => {
+    try {
+      const apiKey = config.getApiKey(providerName);
+      if (apiKey || localProviders.includes(providerName)) {
+        const provider = ProviderManager.getProvider(providerName, apiKey);
+        await provider.listModels();
+      }
+    } catch (e) {
+      // Ignore background fetch errors
+    }
+  })();
 }
 
 async function handleModelsCommand(cfg) {
@@ -5014,6 +5033,23 @@ async function main() {
   }
   process.stdin.resume();
   logDebug('main() execution start');
+  
+  // Populate model context cache in the background on startup
+  (async () => {
+    try {
+      const cfg = config.getConfig();
+      const providerName = cfg.provider || 'gemini';
+      const apiKey = config.getApiKey(providerName);
+      const localProviders = ['ollama', 'lmstudio', 'localai', 'vllm', 'koboldcpp', 'llamacpp', 'textgenwebui', 'gpt4all', 'continue', 'tabby'];
+      if (apiKey || localProviders.includes(providerName)) {
+        const provider = ProviderManager.getProvider(providerName, apiKey);
+        await provider.listModels();
+      }
+    } catch (e) {
+      // Ignore background fetch errors
+    }
+  })();
+
   drawWelcomeScreen();
   const session = new ChatSession();
   mainSession = session;
