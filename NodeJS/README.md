@@ -100,6 +100,21 @@ Inside the chatbot, you can use these commands or press `Ctrl + X` followed by t
 | `/clear` | `Ctrl + X o` | Clear context history and reset terminal |
 | `/exit` | `Ctrl + X q` | Terminate the session |
 
+### Workspace & Productivity Commands
+
+The interactive shell features categorized slash commands for workspace operations, web searching, and multi-agent coordination:
+
+| Category | Commands & Usage | Action Description |
+| :--- | :--- | :--- |
+| **File & Project** | `/new`, `/open`, `/save`, `/rename`, `/delete`, `/close` | Create, read/view, edit/save, rename, remove, or close files in active context |
+| **Navigation** | `/goto <symbol>`, `/search <query>`, `/explorer` | Search file symbols, run grep search across codebase, and browse directory tree |
+| **Code Execution & Verification** | `/run [cmd]`, `/build`, `/format`, `/fix`, `/debug` | Execute active file, build target, format syntax, run coding-agent auto-fix, or debugger-agent verify |
+| **AI Agent Tasks** | `/ask`, `/explain`, `/generate`, `/test`, `/doc` | Chat focused on specific files, explain code segments, write tests, auto-generate code or documentation |
+| **Git Version Control** | `/status`, `/branch`, `/commit`, `/push`, `/pull`, `/clone`, `/stash` | Run standard Git operations inside workspace |
+| **Web Integration** | `/search-web <query>`, `/browse-url <url>` | Execute native DuckDuckGo search and extract clean web content via the capability harness (`webfetch.js`) |
+| **Theme & UI** | `/settings`, `/theme [name]`, `/extensions`, `/restart` | View configuration preferences, toggle color schemes (Classic, Fire, Forest, Sunset, Hacker), reload modules, or reload the harness session |
+| **Utilities** | `/snippet`, `/cmd <command>`, `/log` | Insert snippets, run raw commands with interactive capability permission approval, or read runtime logs |
+
 ## Searchable Pickers & Defaults
 *   **Interactive Search**: Selection menus (such as `/models`, `/coding-models`, `/debugger`, and `/provider`) now feature a real-time `Search > ` filter input. Type letters to narrow down options dynamically.
 *   **Smart Defaults**: Pickers remember and automatically highlight the last used provider or model when opened, so you don't have to scroll from the top every time.
